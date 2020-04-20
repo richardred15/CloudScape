@@ -7,7 +7,23 @@ class LevelManager {
         this.game = game;
         this.set_cursor = false;
         this.cursor_set = false;
+        this.levels = [{
+            obstacles: [],
+            coins: [],
+            boosts: []
+        }];
+        this.default_levels = this.levels;
+
         this.loadMyLevels();
+        this.init();
+    }
+
+    init() {
+        this.levels = [];
+        for (let level of LevelManager.level_names) {
+            this.levels.push(level_cache[level]);
+        }
+        this.default_levels = this.levels;
     }
 
     renderPreviews() {
@@ -179,3 +195,5 @@ class LevelManager {
         return preview;
     }
 }
+
+LevelManager.level_names = ["one", "two", "three", "four"];

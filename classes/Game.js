@@ -23,6 +23,7 @@ class Game {
             positionIterations: 6,
             velocityIterations: 4
         });
+
         GameSettings.init();
         Game.world = this.engine.world;
         this.runner = Matter.Runner.create();
@@ -71,10 +72,10 @@ class Game {
         this.cloudsEnabled = true;
 
 
+        this.level_manager = new LevelManager(this);
 
         this.setupLevel();
         this.hud = new HUD(this);
-        this.levelManager = new LevelManager(this);
         this.levelSelectionMode = false;
         this.tutorial_seen = localStorage.getItem("tutorial") == "true";
     }
@@ -87,22 +88,22 @@ class Game {
                 mx = Math.floor((mx - 200) / 100);
                 my = Math.floor((my - 150) / 100);
                 let hovered = my * 4 + mx;
-                if (this.levelManager.custom_level_names.length > hovered) {
-                    this.levelManager.selectMyLevel(this.levelManager.custom_level_names[hovered]);
+                if (this.level_manager.custom_level_names.length > hovered) {
+                    this.level_manager.selectMyLevel(this.level_manager.custom_level_names[hovered]);
                 }
             }
         }
     }
 
     showLevelSelect() {
-        this.levelManager.loadMyLevels();
+        this.level_manager.loadMyLevels();
         this.levelSelectionMode = true;
         this.pause();
         this.hideOverlay();
     }
 
     setupLevel() {
-        this.level = new Level(levels[this.levelNumber]);
+        this.level = new Level(this.level_manager.levels[this.levelNumber]);
 
     }
 
@@ -142,7 +143,7 @@ class Game {
 
     nextLevel() {
         this.levelNumber++;
-        if (this.levelNumber < levels.length) {
+        if (this.levelNumber < this.level_manager.levels.length) {
             this.reset();
             this.runner.enabled = true;
         }
@@ -315,7 +316,7 @@ class Game {
             stroke(0);
             strokeWeight(0);
             fill(255);
-            let last = this.levelNumber >= levels.length - 1;
+            let last = this.levelNumber >= this.level_manager.levels.length - 1;
             let t = "NICE!";
             text(t, (WIDTH / 2), HEIGHT / 2 - 50);
             textSize(46);
@@ -375,7 +376,7 @@ class Game {
             }
         }
 
-        if (this.levelSelectionMode) this.levelManager.renderPreviews();
+        if (this.levelSelectionMode) this.level_manager.renderPreviews();
 
         this.firstFrame = false;
 

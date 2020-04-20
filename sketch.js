@@ -69,7 +69,7 @@ function preload() {
         "loop1.wav");
     loadImages();
 
-    for (let name of level_names) {
+    for (let name of LevelManager.level_names) {
         loadJSON("levels/" + name + ".json", function (data) {
             level_cache[name] = data;
         });
@@ -102,14 +102,7 @@ function loadImages() {
 
 let framerates = [];
 let avgFramerate = 0;
-let levels = [{
-    obstacles: [],
-    coins: [],
-    boosts: []
-}];
-let default_levels = levels;
 
-let level_names = ["one", "two", "three", "four"];
 
 let windowScale = window.innerHeight / HEIGHT;
 
@@ -174,11 +167,7 @@ function setup() {
     setTheme(theme);
 
 
-    levels = [];
-    for (let level of level_names) {
-        levels.push(level_cache[level]);
-    }
-    default_levels = levels;
+
     imageMode(CENTER);
     rectMode(CENTER);
     ellipseMode(CENTER);
