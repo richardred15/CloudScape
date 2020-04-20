@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Cloudscape</title>
+    <link rel="stylesheet" href="style.css" />
+    <meta property="og:title" content="CloudScape" />
+    <meta property="og:image" content="https://richard.works/projects/Cloudscape/icon.png" />
+    <meta property="og:url" content="https://richard.works/projects/Cloudscape/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" content="A fun platform game with level editor" />
+    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/p5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/addons/p5.sound.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/addons/p5.dom.min.js"></script> -->
+    <script src="libraries/decomp.min.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="libraries/matter.min.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Level.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/LevelManager.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Keyboard.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Ground.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Trail.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Rain.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Explosion.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Cup.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Collectable.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Object.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Circle.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Spikes.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Balloon.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/AngelCoin.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Rectangle.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Player.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Coin.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/MaxBoost.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/HUD.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Game.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Sound.js?test=46054654&v=8s8fs8fs8f"></script>
+    <script src="classes/Clouds.js?test=46054654&v=8s8fs8fs8f"></script>
+</head>
+
+<body>
+    <div id="overlay">
+        <div id="menu">
+            <div id="header">Menu</div>
+            <div id="buttons">
+                <div id="main_buttons" class="button_group showing">
+                    <div id="start_button" class="button" onclick="game.start()">Start</div>
+                    <div id="restart_button" onclick="game.restart()" style="display:none;" class="button">Restart</div>
+                    <div id="level_select_button" class="button" onclick="game.showLevelSelect()">Select Level</div>
+                    <div id="level_select_button" class="button" onclick="window.open('editor', '_blank')">Level Editor
+                    </div>
+                    <div class="button" id="open_options_button" onclick="toggleOptions()">Options</div>
+                </div>
+                <div id="option_buttons" class="button_group">
+                    <div class="button" id="" onclick="toggleOptions()">Back</div>
+                    <div id="mute_all_button" onclick="soundManager.mute()" class="button">Mute All</div>
+                    <div id="slider_group">
+                        <div class="slider" step="1" min="0" max="100" value="100" id="music_volume_slider">
+                            <div class="indicator" id="music_slider_indicator"></div>
+                        </div>
+                        <label>Music Volume</label>
+                    </div>
+                    <!--                     <div id="mute_music_button" onclick="soundManager.muteMusic()" class="button">Mute Music</div>
+ -->
+                    <div id="disable_cloud_button" onclick="game.clouds.toggleQuality()" class="button">Disable Clouds
+                    </div>
+                    <div id="disable_particle_button" onclick="game.disableParticles()" class="button">Disable Particles
+                    </div>
+                </div>
+                <div id="help_menu" class="button_group">
+                    <div id="tutorial_text">
+                        <h4>Welcome to CloudScape!</h4>
+                        <div class="text_block">
+                            Bounce and jump your way through each level! Avoid the spikes, though...
+                            <div style="font-size:12px">-Wall Jump to Success-</div>
+                        </div>
+                        <table class="coin_info">
+                            <tr>
+                                <td><img src="media/images/coin.png" /></td>
+                                <td>+100 Points</td>
+                                <td><img src="media/images/boost.png" /></td>
+                                <td>Fills your boost bar</td>
+                            </tr>
+                            <tr>
+                                <td><img src="media/images/balloon.png" /></td>
+                                <td>Reduced gravity for 2 seconds</td>
+                                <td><img src="media/images/angel_coin.png" /></td>
+                                <td>Float for 2 seconds</td>
+                            </tr>
+                        </table>
+                        <table>
+                            <tr>
+                                <td>[A],[D]</td>
+                                <td> Move left,right</td>
+                            </tr>
+                            <tr>
+                                <td>{SPACE}</td>
+                                <td> Jump</td>
+                            </tr>
+                            <tr>
+                                <td>{SHIFT}{SPACE}</td>
+                                <td> Boosted Jump</td>
+                            </tr>
+                            <tr>
+                                <td>[ESC]</td>
+                                <td>Pause/Resume/Exit</td>
+                            </tr>
+                        </table>
+                        <h4>Slow computer? Try disabling clouds and particles in the options!</h4>
+                    </div>
+                    <div id="start_button" class="button" onclick="game.start();toggleHelp();">Let me Play!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="sketch.js?v=asdfga444"></script>
+
+</body>
+
+</html>

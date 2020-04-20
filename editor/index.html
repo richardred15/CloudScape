@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div id="canvas" class="canvas"></div>
+    <div id="selector">
+        <div class="selection" id="boost_selector" onclick="setItem('boost')"><img class=""
+                src="../media/images/boost.png" />
+        </div>
+        <div class="selection" id="coin_selector" onclick="setItem('coin')"><img class=""
+                src="../media/images/coin.png" />
+        </div>
+        <div class="selection" id="angel_coin_selector" onclick="setItem('angel_coin')"><img class=""
+                src="../media/images/angel_coin.png" />
+        </div>
+        <div class="selection" id="balloon_selector" onclick="setItem('balloon')"><img class=""
+                src="../media/images/balloon.png" />
+        </div>
+        <div class="selection selected" id="obstacle_selector" onclick="setItem('obstacle')"><img class=""
+                src="../media/images/obstacle.png" /></div>
+        <div class="selection" id="spikes_selector" onclick="setItem('spikes')"><img class=""
+                src="../media/images/spikes.png" /></div>
+
+    </div>
+    <textarea id="output"></textarea>
+    <div class="save_options">
+        <div class="group">
+            <label>Saved Levels:</label>
+            <select onchange="loadLevel(this.options[this.selectedIndex].value)" id="my_levels"></select>
+        </div>
+        <div class="group save">
+            <input id="new_name" type="text" />
+            <button onclick="saveLevel()">Save</button>
+        </div>
+        <div class="group split">
+            <button onclick="canvas.innerHTML = '';name_box.value = '';window.onmouseup()">New</button>
+            <button onclick="window.location.reload()">Reload</button>
+        </div>
+    </div>
+    <div id="dObstacle" class="item obstacle"
+        style="width:200px;height:30px;top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+    <div id="dCoin" class="item coin" style="width:30px;height:30px;top:50%;left:50%;transform:translate(-50%,-50%);">
+    </div>
+    <div id="dAngelCoin" class="item angel_coin"
+        style="width:64px;height:31px;top:50%;left:50%;transform:translate(-50%,-50%);">
+    </div>
+    <div id="dBalloon" class="item balloon"
+        style="width:32px;height:93px;top:50%;left:50%;transform:translate(-50%,-50%);">
+    </div>
+    <div id="dBoost" class="item boost" style="width:30px;height:30px;top:50%;left:50%;transform:translate(-50%,-50%);">
+    </div>
+    <div id="dSpikes" class="item spikes"
+        style="width:199px;height:63px;top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+    <div id="dHelper" class="helper" style="">
+        <div class="rotate">↻</div>
+    </div>
+    <div id="indicator"
+        style="transform:translate(-50%,-50%);position:absolute;width:30px;height:30px;border-radius:15px;background-color:red">
+    </div>
+</body>
+
+<script>
+    let canvas = document.getElementById("canvas");
+    let output = document.getElementById("output");
+    let indicator = document.getElementById("indicator");
+    let dObstacle = document.getElementById("dObstacle");
+    let dCoin = document.getElementById("dCoin");
+    let dAngelCoin = document.getElementById("dAngelCoin");
+    let dBalloon = document.getElementById("dBalloon");
+    let dBoost = document.getElementById("dBoost");
+    let dSpikes = document.getElementById("dSpikes");
+    let dHelper = document.getElementById("dHelper");
+    let boost_selector = document.getElementById("boost_selector");
+    let coin_selector = document.getElementById("coin_selector");
+    let obstacle_selector = document.getElementById("obstacle_selector");
+    let spikes_selector = document.getElementById("spikes_selector");
+    let angel_coin_selector = document.getElementById("angel_coin_selector");
+    let balloon_selector = document.getElementById("balloon_selector");
+    let level_selector = document.getElementById("my_levels");
+    let name_box = document.getElementById("new_name");
+    let eItem = dObstacle;
+    let type = "";
+    let selected_level = "";
+    let new_item = false;
+    let current_level = {};
+    let my_levels = [];
+    let states = [];
+
+    let updateOutputTimeout;
+
+    output.onkeydown = function (e) {
+        clearTimeout(updateOutputTimeout);
+        updateOutputTimeout = setTimeout(updateFromOutput, 500);
+    }
+
+    function updateFromOutput() {
+        try {
+            let data = JSON.parse(output.value);
+            console.log(data);
+            populateLevel(data);
+            saveState();
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    function backState() {
+        console.log(states.length);
+        //if (states.length > 1) states.pop();
+        if (states.length > 1) {
+            states.pop();
+            let newState = states.pop();
+            if (newState) {
+                populateLevel(newState);
+                console.log(newState)
+                saveState();
+            }
+        }
+        updateOutput();
+    }
+
+    function saveState() {
+        current_level = generateLevel();
+        let state = current_level;
+        console.log("saved state");
+        states.push(state);
+    }
+
+    function loadMyLevels() {
+        let m = localStorage.getItem("my_levels");
+        if (m != null) {
+            try {
+                let l = JSON.parse(m);
+                my_levels = l;
+                let selected = localStorage.getItem("selected_level");
+                if (selected != null) {
+                    loadLevel(selected);
+                    name_box.value = selected;
+                    window.onmouseup({
+                        button: 0
+                    });
+                } else {
+                    //saveState();
+                }
+                for (let level of l) {
+                    let o = document.createElement("option");
+                    if (selected_level == level) o.selected = "true";
+                    o.value = level;
+                    o.innerHTML = level;
+                    level_selector.appendChild(o);
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        }
+    }
+
+
+    function getLevel(name) {
+        let level = {
+            scenes: [{
+                layers: [{
+                    obstacles: [],
+                    goal: {},
+                    coins: [],
+                    boosts: [],
+                    spikes: [],
+                    angel_coins: [],
+                    balloons: []
+                }]
+            }]
+        }
+
+
+        let data = localStorage.getItem("level_" + name);
+        if (data != null) {
+            data = JSON.parse(data);
+            for (let prop in data) {
+                if (!level.hasOwnProperty(prop)) continue;
+                level[prop] = data[prop];
+            }
+            return level;
+        }
+        return false;
+    }
+
+    function loadLevel(name) {
+        states = [];
+        populateLevel(getLevel(name));
+        saveState();
+    }
+
+    function populateLevel(l) {
+        if (l) {
+            canvas.innerHTML = "";
+            items = [];
+            for (let o of l.obstacles) {
+                loadItem(o, dObstacle);
+            }
+            for (let o of l.coins) {
+                loadItem(o, dCoin);
+            }
+            for (let o of l.boosts) {
+                loadItem(o, dBoost);
+            }
+            for (let s of l.spikes) {
+                loadItem(s, dSpikes);
+            }
+            for (let a of l.angel_coins) {
+                loadItem(a, dAngelCoin);
+            }
+            for (let b of l.balloons) {
+                loadItem(b, dBalloon);
+            }
+            selected_level = name;
+            localStorage.setItem("selected_level", name);
+        }
+    }
+
+    let rotationStartX = 0;
+    let rotationStartY = 0;
+    let startRotation = 0;
+    let rotating = false;
+    let rotated_item;
+
+    function loadItem(item, node) {
+        let helper = dHelper.cloneNode(true);
+        let elm = node.cloneNode();
+        helper.style.left = item[0] + "px";
+        helper.style.top = item[1] + "px";
+        helper.style.transform = `translate(-50%, -50%) rotate(${item[4]}rad)`;
+        helper.id = "";
+        elm.id = "";
+        helper.onmousedown = function (e) {
+            if (e.button == 0) {
+                console.log(e);
+                e.stopPropagation();
+                e.cancelBubble = true;
+                mouse_is_down = true;
+                selected_item = helper;
+                dragged_item = helper;
+                console.log("item clicked");
+                return false;
+            }
+        }
+        helper.querySelector(".rotate").onmousedown = function (e) {
+            if (e.button == 0) {
+                console.log("rotate!", e);
+                rotationStartX = pxToNum(helper.style.left) + ((window.innerWidth - 800) / 2);
+                rotationStartY = pxToNum(helper.style.top) + ((window.innerHeight - 600) / 2);
+                console.log(rotationStartY, rotationStartX);
+                rotating = true;
+                indicator.style.top = `${rotationStartY}px`;
+                indicator.style.left = `${rotationStartX}px`;
+                rotated_item = helper;
+                startRotation = transformToRads(helper.style.transform);
+                console.log(startRotation);
+                e.stopPropagation();
+                e.cancelBubble = true;
+                return false;
+            }
+        }
+        items.push(helper);
+        helper.appendChild(elm);
+        canvas.appendChild(helper);
+    }
+
+    function saveLevel() {
+        let name = name_box.value;
+        name = name.trim();
+        if (name != "") {
+            let l = generateLevel();
+            if (my_levels.indexOf(name) == -1) my_levels.push(name);
+            localStorage.setItem("my_levels", JSON.stringify(my_levels));
+            localStorage.setItem("level_" + name, JSON.stringify(l));
+            selected_level = name;
+            localStorage.setItem("selected_level", name)
+        }
+    }
+
+    function setItem(name) {
+        document.querySelector(".selected").classList.remove("selected");
+        console.log(name);
+        switch (name) {
+            case "obstacle":
+                eItem = dObstacle;
+                obstacle_selector.classList.add("selected");
+                break;
+            case "coin":
+                eItem = dCoin;
+                coin_selector.classList.add("selected");
+                break;
+            case "boost":
+                eItem = dBoost;
+                console.log(eItem);
+                boost_selector.classList.add("selected");
+                break;
+            case "spikes":
+                eItem = dSpikes;
+                console.log(eItem);
+                spikes_selector.classList.add("selected");
+                break;
+            case "angel_coin":
+                eItem = dAngelCoin;
+                console.log(eItem);
+                angel_coin_selector.classList.add("selected");
+                break;
+            case "balloon":
+                eItem = dBalloon;
+                console.log(eItem);
+                balloon_selector.classList.add("selected");
+                break;
+            default:
+                break;
+        }
+        type = name;
+    }
+
+    let offsets = {
+        x: (window.innerWidth - 800) / 2,
+        y: (window.innerHeight - 600) / 2
+    }
+    let items = [];
+    let selected_item = null;
+    let dragged_item = null;
+    canvas.onmousedown = function (e) {
+        console.log(e);
+        if (dragged_item == null && e.button == 0) {
+            let helper = dHelper.cloneNode(true);
+            let item = eItem.cloneNode();
+            item.id = "";
+            helper.id = "";
+            helper.style.left = (e.clientX - offsets.x) + "px";
+            helper.style.top = e.clientY - offsets.y + "px";
+            helper.onmousedown = function (e) {
+                if (e.button == 0) {
+                    e.stopPropagation();
+                    e.cancelBubble = true;
+                    mouse_is_down = true;
+                    selected_item = helper;
+                    dragged_item = helper;
+                    console.log("item clicked");
+                    return false;
+                }
+            }
+            helper.querySelector(".rotate").onmousedown = function (e) {
+                if (e.button == 0) {
+                    console.log("rotate!", e);
+                    rotationStartX = pxToNum(helper.style.left) + ((window.innerWidth - 800) / 2);
+                    rotationStartY = pxToNum(helper.style.top) + ((window.innerHeight - 600) / 2);
+                    console.log(rotationStartY, rotationStartX);
+                    rotating = true;
+                    indicator.style.top = `${rotationStartY}px`;
+                    indicator.style.left = `${rotationStartX}px`;
+                    rotated_item = helper;
+                    startRotation = transformToRads(helper.style.transform);
+                    console.log(startRotation);
+                    e.stopPropagation();
+                    e.cancelBubble = true;
+                    return false;
+                }
+            }
+            new_item = true;
+            mouse_is_down = true;
+            selected_item = helper;
+            dragged_item = helper;
+            items.push(helper);
+            helper.appendChild(item);
+            canvas.appendChild(helper);
+            console.log("item added");
+            saveState();
+        }
+    }
+
+    document.oncontextmenu = function () {
+        return false;
+    }
+
+    let mouse_is_down = false;
+
+    window.onmousedown = function (e) {
+        if (e.button == 0) mouse_is_down = true;
+    }
+
+    window.onkeyup = function (e) {
+        if (e.keyCode == 90 && e.ctrlKey) {
+            backState();
+            console.log("undo");
+        }
+    }
+
+    window.onblur = window.onmouseup = function (e) {
+        console.log(e);
+        if (e.button == 0 || e.type == "blur") {
+            mouse_is_down = false;
+            if (selected_item != null) {
+                selected_item = null;
+            }
+            if (dragged_item != null) {
+                dragged_item = null;
+                console.log('set to null');
+                if (!new_item) saveState();
+            }
+            if (new_item) {
+                new_item = false;
+            }
+            if (rotating) {
+                rotating = false;
+                saveState();
+            }
+
+            current_level = generateLevel();
+            updateOutput();
+        }
+    }
+
+    function updateOutput() {
+        output.value = JSON.stringify(current_level, null, 2); //.replace(/,\n     /g, ',');
+    }
+
+    output.onmouseup = function (e) {
+        e.stopPropagation();
+        return false;
+    }
+
+    canvas.onmousemove = function (e) {
+        if (mouse_is_down && dragged_item != null) {
+            let item = dragged_item.querySelector(".item");
+            dragged_item.style.left = (e.clientX - offsets.x) + "px"; //- (pxToNum(item.style.width)) + "px";
+            dragged_item.style.top = (e.clientY - offsets.y) + "px"; //- (pxToNum(item.style.height)) + "px";
+        }
+
+    }
+
+    window.onmousemove = function (e) {
+        if (rotating) {
+            let x = e.clientX - ((window.innerWidth - 800) / 2);
+            let y = e.clientY - ((window.innerHeight - 600) / 2);
+            console.log(x, y);
+            let newRotation = Math.atan2(e.clientY - rotationStartY, e.clientX - rotationStartX);
+            newRotation += Math.abs(startRotation);
+            newRotation = newRotation % (2 * Math.PI);
+            console.log(e.clientX, e.clientY);
+            rotated_item.style.transform = `translate(-50%, -50%) rotate(${newRotation}rad)`;
+        }
+    }
+
+
+    function distance(x1, y1, x2, y2) {
+        return Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2));
+    }
+
+    function pxToNum(string) {
+        string = string.replace("px", "");
+        //console.log("px " + string);
+        return parseInt(string);
+    }
+
+    function transformToRads(str) {
+        let m = str.match(/rotate\((-?\d*\.*\d*)rad\)/);
+        console.log(m);
+        if (m && m.length > 1) {
+            return parseFloat(m[1]);
+        } else
+            return 0;
+    }
+
+    function generateLevel() {
+        let level = {
+            scenes: [{
+                layers: [{
+                    obstacles: [],
+                    goal: {},
+                    coins: [],
+                    boosts: [],
+                    spikes: [],
+                    angel_coins: [],
+                    balloons: []
+                }]
+            }]
+        }
+
+        canvas.querySelectorAll(".obstacle").forEach(e => {
+            let width = pxToNum(e.style.width);
+            let x = pxToNum(e.parentElement.style.left); //+ (width / 2);
+            let height = pxToNum(e.style.height);
+            let y = pxToNum(e.parentElement.style.top); //+ (height / 2);
+            //console.log(x, y, width, height);
+            level.scenes[0].layers[0].obstacles.push([x, y, width, height, transformToRads(e.parentElement.style
+                .transform)]);
+        });
+        canvas.querySelectorAll(".coin").forEach(e => {
+            let width = pxToNum(e.style.width);
+            let x = pxToNum(e.parentElement.style.left); //+ (width / 2);
+            let height = pxToNum(e.style.height);
+            let y = pxToNum(e.parentElement.style.top); //+ (height / 2);
+
+            level.scenes[0].layers[0].coins.push([x, y, width, height, transformToRads(e.parentElement.style
+                .transform)]);
+        });
+        canvas.querySelectorAll(".boost").forEach(e => {
+            let width = pxToNum(e.style.width);
+            let x = pxToNum(e.parentElement.style.left); //+ (width / 2);
+            let height = pxToNum(e.style.height);
+            let y = pxToNum(e.parentElement.style.top); //+ (height / 2);
+
+            level.scenes[0].layers[0].boosts.push([x, y, width, height, transformToRads(e.parentElement.style
+                .transform)]);
+        });
+
+        canvas.querySelectorAll(".spikes").forEach(e => {
+            let width = pxToNum(e.style.width);
+            let x = pxToNum(e.parentElement.style.left); //+ (width / 2);
+            let height = pxToNum(e.style.height);
+            let y = pxToNum(e.parentElement.style.top);
+            //e.parentElement.style.top = "555px";
+
+            level.scenes[0].layers[0].spikes.push([x, y, width, height, transformToRads(e.parentElement.style
+                .transform)]);
+        });
+
+        canvas.querySelectorAll(".angel_coin").forEach(e => {
+            let width = pxToNum(e.style.width);
+            let x = pxToNum(e.parentElement.style.left); //+ (width / 2);
+            let height = pxToNum(e.style.height);
+            let y = pxToNum(e.parentElement.style.top);
+            //e.parentElement.style.top = "555px";
+
+            level.scenes[0].layers[0].angel_coins.push([x, y, width, height, transformToRads(e.parentElement
+                .style.transform)]);
+        });
+
+        canvas.querySelectorAll(".balloon").forEach(e => {
+            let width = pxToNum(e.style.width);
+            let x = pxToNum(e.parentElement.style.left); //+ (width / 2);
+            let height = pxToNum(e.style.height);
+            let y = pxToNum(e.parentElement.style.top);
+            //e.parentElement.style.top = "555px";
+
+            level.scenes[0].layers[0].balloons.push([x, y, width, height, transformToRads(e.parentElement.style
+                .transform)]);
+        });
+
+        return level;
+    }
+    loadMyLevels();
+</script>
+
+</html>

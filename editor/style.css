@@ -1,0 +1,163 @@
+body,
+html {
+    margin: 0px;
+    padding: 0px;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #111;
+    color: white;
+    font-weight: bold;
+    font-family: sans-serif;
+}
+
+.canvas {
+    border: 1px solid black;
+    width: 800px;
+    height: 600px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-image: url(bg.png);
+}
+
+.item {
+    background-size: contain;
+    background-repeat: none;
+    position: absolute;
+}
+
+.obstacle {
+    background-image: url(https://richard.works/projects/Cloudscape/media/images/obstacle.png);
+}
+
+.coin {
+    background-image: url(https://richard.works/projects/Cloudscape/media/images/coin.png);
+}
+
+.spikes {
+    background-image: url(https://richard.works/projects/Cloudscape/media/images/spikes.png);
+}
+
+.boost {
+    background-image: url(https://richard.works/projects/Cloudscape/media/images/boost.png);
+}
+
+.angel_coin {
+    background-image: url(https://richard.works/projects/Cloudscape/media/images/angel_coin.png);
+}
+
+.balloon {
+    background-image: url(https://richard.works/projects/Cloudscape/media/images/balloon.png);
+}
+
+#selector {
+    padding: 5px;
+    box-sizing: border-box;
+    height: 90px;
+    position: relative;
+}
+
+#help_menu {
+    font-size: 18px;
+}
+
+#indicator,
+#dObstacle,
+#dCoin,
+#dBoost,
+#dSpikes,
+#dHelper,
+#dAngelCoin,
+#dBalloon {
+    display: none;
+}
+
+.helper {
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    width: 100px;
+    height: 100px;
+    position: absolute;
+    transform-origin: center;
+    transform: translate(-50%, -50%);
+}
+
+.helper .rotate {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: -20px;
+    font-size: 40px;
+    color: green;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.selection {
+    padding: 10px;
+    max-height: 80px;
+    max-width: 200px;
+    display: inline-block;
+    line-height: 50px;
+    vertical-align: top;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.selection img {
+    max-width: 100%;
+    max-height: 100%;
+    position: relative;
+    vertical-align: middle;
+}
+
+.selected {
+    border: none;
+    background-color: rgb(90, 90, 90);
+}
+
+#output {
+    border: none;
+    width: calc(50vw - 410px);
+    height: 600px;
+    background-color: #222;
+    color: white;
+    font-weight: bold;
+    box-sizing: border-box;
+    display: block;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.save_options {
+    width: calc(50vw - 450px);
+    left: 10px;
+    box-sizing: border-box;
+    padding: 5px;
+    background-color: #222;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.group {
+    display: grid;
+    padding: 5px;
+    width: 100%;
+    box-sizing: border-box;
+    grid-template-columns: 100px 1fr;
+    min-height: 46px;
+}
+
+.group.save {
+    grid-template-columns: 1fr 100px;
+}
+
+.group.split {
+    grid-template-columns: 1fr 1fr;
+}
+
+select {}

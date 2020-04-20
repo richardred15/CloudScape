@@ -1,0 +1,177 @@
+body,
+html {
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    background-color: rgb(51, 51, 51);
+    color: white;
+    font-family: sans-serif;
+    font-family: 'Bubblegum Sans', cursive;
+    text-align: center;
+    font-size: 32px;
+    width: 100vw;
+    height: 100vh;
+    font-weight: bold;
+    background: rgb(135, 206, 235);
+    background: linear-gradient(0deg, rgba(255, 255, 255, 1) 0%, rgba(135, 206, 235, 1) 16%, rgba(156, 214, 238, 1) 65%, rgba(0, 212, 255, 1) 100%);
+}
+
+#overlay {
+    opacity: 0;
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.3);
+    user-select: none;
+
+}
+
+#slider_group label {
+    display: block;
+    text-align: center;
+    font-size: 18px;
+}
+
+#slider_group .slider {
+    background-color: white;
+    height: 10px;
+    width: 300px;
+    margin: auto;
+    position: relative;
+    margin-bottom: 20px;
+}
+
+#slider_group .slider .indicator {
+    cursor: pointer;
+    height: 20px;
+    width: 10px;
+    top: 50%;
+    left: 0%;
+    transform: translate(-50%, -50%);
+    background-color: #d8d8d8;
+    position: absolute;
+}
+
+#help_menu {
+    font-size: 18px;
+}
+
+#help_menu .text_block {
+    padding-bottom: 30px;
+}
+
+#help_menu table {
+    width: 100%;
+    text-align: left;
+}
+
+#help_menu table td:first-child {
+    width: 150px;
+}
+
+#help_menu .coin_info {
+    table-layout: fixed;
+    margin-bottom: 10px;
+}
+
+#help_menu .coin_info td {
+    width: 150px;
+}
+
+#help_menu .coin_info td img {
+    max-height: 30px;
+    max-width: 100%;
+}
+
+#help_menu .coin_info td:nth-child(odd) {
+    width: 50px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#header {
+    font-size: 2em;
+}
+
+#menu {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 400px;
+    display: grid;
+    grid-template-rows: 75px 1fr;
+    padding: 20px;
+    /*     background-color: rgba(0, 0, 0, 0.3);
+ */
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-image: url(https://richard.works/projects/Cloudscape/media/images/win.png);
+}
+
+#buttons {
+    text-align: center;
+    width: 400px;
+}
+
+.button_group {
+    height: 0px;
+    overflow: hidden;
+}
+
+.button_group.showing {
+    height: auto;
+    padding-bottom: 30px;
+}
+
+.button {
+    color: black;
+    cursor: pointer;
+    font-size: 32px;
+    line-height: 75px;
+    width: 250px;
+    border-radius: 5px;
+    height: 75px;
+    background-color: none;
+    margin: 20px auto;
+    border: none;
+    transition: all 0.3s ease;
+    z-index: 3;
+    background-image: url(https://richard.works/projects/Cloudscape/media/images/button.png);
+    background-size: 100% 100%;
+}
+
+.button:hover {
+    /*     transform: scale(1.5);
+ */
+    z-index: 4;
+    height: 100px;
+    line-height: 100px;
+    width: 300px;
+}
+
+.button.disabled {
+    pointer-events: none;
+    background-color: #ccc;
+}
+
+.button.disabled:hover {
+    height: 75px;
+    width: 250px;
+    line-height: 75px;
+    z-index: 3;
+}
+
+canvas {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 2px solid black;
+    background-size: 100% 100%;
+    background-image: url(https://richard.works/projects/Cloudscape/media/images/bg_under.png);
+}
